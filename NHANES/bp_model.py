@@ -18,9 +18,11 @@
 
 import numpy as np
 import statsmodels.api as sm
-from data_prep import dx
+from data_prep import get_data
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+
+dx = get_data(2015)
 
 def plot_fit_by_age(result, fml):
 

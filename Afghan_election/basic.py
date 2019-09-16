@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from data import df
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
+pdf = PdfPages("afghan_basic.pdf")
 
 # Candidate names for round 1 and round 2
 candidates1 = ['Hilal', 'Abdullah', 'Rassoul', 'Wardak', 'Karzai', 'Sayyaf',
@@ -82,13 +86,32 @@ fml6 = "Ghani_Abdullah ~ " + " + ".join(candidates1)
 model6 = sm.OLS.from_formula(fml6, data=dl)
 result6 = model6.fit()
 
+# Get the intercept plus the regression effects of all candidates other than Abdullah and Ghani
+# taken at their respective means.
 mnx = model6.exog.mean(0)
 mnx0 = mnx.copy()
 mnx0[model6.exog_names.index("Abdullah")] = 0
 mnx0[model6.exog_names.index("Ghani")] = 0
+
+# The combined intercept at the mean for all candidates other than Abdullah and Ghani
 c = np.dot(mnx0, result6.params)
+
+# The coefficients for Abdullah and Ghani
 a = result6.params[model6.exog_names.index("Abdullah")]
 g = result6.params[model6.exog_names.index("Ghani")]
-# c + a*A + g*G is the fitted log ratio of Ghani support
-# to Abdullah support in round 2, and c + (a-1)*A + (g-1)*G
-# is the log "ratio of ratios" comparing round 2 to round 1.
+
+# The region where Ghani is expected to win in round 2 is everything
+# above the black line.
+plt.clf()
+plt.grid(True)
+plt.plot(dl["Abdullah"], dl["Ghani"], 'o', color='grey', alpha=0.4)
+plt.xlabel("log Abdullah round 1", size=15)
+plt.ylabel("log Ghani round 1", size=15)
+x = np.r_[3, 10]
+plt.plot(x, -c/g - a*x/g, '-', color='black')
+plt.plot(x, x, '-', color='red')
+plt.xlim(3, 9)
+plt.ylim(3, 9)
+pdf.savefig()
+
+pdf.close()

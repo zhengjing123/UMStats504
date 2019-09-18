@@ -29,7 +29,7 @@ def get_data(year):
 
     Currently only works for 1999 and 2015.
 
-    Data must be downloaded into the director data/YYYY, where YYYY is the
+    Data must be downloaded into the directory data/YYYY, where YYYY is the
     four-digit year.
     """
 

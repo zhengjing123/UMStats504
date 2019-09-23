@@ -61,6 +61,8 @@ for cx in range(4):
         leg.draw_frame(False)
         plt.xlabel("Age", size=15)
         plt.ylabel(ylabel, size=15)
+        if cx > 0:
+            plt.ylim(-0.2, 0.2)
         pdf.savefig()
 
 

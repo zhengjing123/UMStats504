@@ -1,3 +1,7 @@
+"""
+The data come from the IPUMS/NHGIS site: data2.nhgis.org
+"""
+
 import numpy as np
 import pandas as pd
 

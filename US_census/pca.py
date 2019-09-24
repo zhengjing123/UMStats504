@@ -6,12 +6,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 pdf = PdfPages("census_pca.pdf")
 
+age_bands = ["<5", "5-9", "10-14", "15-17", "18-19", "20", "21", "22-24", "25-29",
+             "30-34", "35-44", "45-54", "55-59", "60-61", "62-64", "65-74", "75-84",
+             "85+"]
+
 dy = dx.copy()
-
-# Convert to proportions, since census tracts are not all the same size
-for vars in popvars, incvars:
-    dy.loc[:, vars] = dy.loc[:, vars].div(dy.loc[:, vars].sum(1), axis=0)
-
 dy = dy.dropna()
 
 def do_pca(x, vars):
@@ -31,9 +30,6 @@ def do_pca(x, vars):
 
 u_pop, v_pop, mn_pop = do_pca(dy, popvars)
 
-xl = ["%.0f" % x for x in np.linspace(5, 85, 18)]
-xl = xl + xl
-
 for cx in range(4):
     for k in range(5):
 
@@ -52,7 +48,7 @@ for cx in range(4):
         plt.plot(vp.iloc[0:m//2], label="Female")
         plt.plot(vp.iloc[m//2:], label="Male")
         plt.title("%d" % (1970 + k*10))
-        g = plt.gca().set_xticklabels(xl)
+        g = plt.gca().set_xticklabels(age_bands + age_bands)
         for u in g:
             u.set_size(10)
             u.set_rotation(-90)

@@ -1,6 +1,7 @@
 # Principal Component Analysis of the US census data for
 # household income and age/sex structure.  The unit of
-# analysis is a census tract.
+# analysis is a census tract.  See the IPUMS/NHGIS
+# codebooks for more information about the variables.
 
 import numpy as np
 import pandas as pd
@@ -9,10 +10,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 pdf = PdfPages("census_pca.pdf")
-
-age_bands = ["<5", "5-9", "10-14", "15-17", "18-19", "20", "21", "22-24", "25-29",
-             "30-34", "35-44", "45-54", "55-59", "60-61", "62-64", "65-74", "75-84",
-             "85+"]
 
 dy = dx.copy()
 dy = dy.dropna()
@@ -32,9 +29,10 @@ def do_pca(x, vars):
 
     return u, v, ldz_mean
 
+# Do the PCA for the population data.
 u_pop, v_pop, mn_pop = do_pca(dy, popvars)
 
-
+# Plot the centroid and loadings for the population data.
 for cx in range(4):
     for k in range(5):
 
@@ -50,9 +48,10 @@ for cx in range(4):
         plot_pop(vp, ylabel, "%d population structure" % (1970 + k*10), ylim)
         pdf.savefig()
 
-
+# Do the PCA for the income data.
 u_inc, v_inc, mn_inc = do_pca(dy, incvars)
 
+# Plot the loadings for the income data.
 for cx in range(3):
     vp = v_inc.loc[io, cx].values
     title = "Income component loadings"
@@ -62,5 +61,6 @@ for cx in range(3):
 
 pdf.close()
 
+# Remove this if you aren't me
 import os
 os.system("cp census_pca.pdf ~kshedden")

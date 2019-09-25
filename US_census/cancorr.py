@@ -1,6 +1,10 @@
-# Canonical Correlation Analysis of the US census data for
-# household income and age/sex structure.  The unit of
-# analysis is a census tract.
+# Canonical Correlation Analysis of the US census data relating
+# household income to population demographic (age/sex) structure.
+# The unit of analysis is a census tract.  Data from 5 decennial
+# census waves (1970-2010) are used.  The overall dimension of
+# the demographic data is 180 and the overall dimension of the
+# income data is 125.  See the IPUMS/NHGIS codebooks for more
+# information about the variables.
 
 import numpy as np
 import pandas as pd
@@ -24,15 +28,21 @@ for vars in incvars, popvars:
     dy.loc[:, vars] = np.log(0.01 + dy.loc[:, vars])
     dy.loc[:, vars] -= dy.loc[:, vars].mean(0)
 
+# Split the data into the income variables and the population
+# variables.
 inc_dat = dy.loc[:, incvars]
 pop_dat = dy.loc[:, popvars]
 
+# Do a PC reduction on the income data (this is not always part
+# of CCA, but is done here for reasons discussed in class).
 u_i, s_i, vt_i = np.linalg.svd(inc_dat, 0)
 inc_dat1 = u_i[:, 0:q_i]
 
+# Do a PCreduction on the demographic data.
 u_p, s_p, vt_p = np.linalg.svd(pop_dat, 0)
 pop_dat1 = u_p[:, 0:q_p]
 
+# Do CCA on the reduced data
 cc = sm.multivariate.CanCorr(inc_dat1, pop_dat1)
 
 # Check that canonical correlation is doing what it is supposed to do
@@ -41,17 +51,18 @@ for j in range(5):
     x1 = np.dot(pop_dat1, cc.x_cancoef[:, j])
     assert(np.abs(np.corrcoef(x1, y1)[0, 1] - cc.cancorr[j]) < 1e-5)
 
-
+# Map the coefficients back to the original coordinates
 inc_coef = np.dot(vt_i.T[:, 0:q_i], cc.y_cancoef / s_i[0:q_i])
 pop_coef = np.dot(vt_p.T[:, 0:q_p], cc.x_cancoef / s_p[0:q_p])
 
 inc_coef = pd.DataFrame(inc_coef, index=incvars)
 pop_coef = pd.DataFrame(pop_coef, index=popvars)
 
+# Normalize to unit length
 inc_coef = inc_coef.div(np.sqrt(np.sum(inc_coef**2, 0)), axis=1)
 pop_coef = pop_coef.div(np.sqrt(np.sum(pop_coef**2, 0)), axis=1)
 
-
+# Plot the loadings
 for j in range(3):
     for k in range(5):
         ylabel = "Component %d loading" % (j + 1)
@@ -64,5 +75,6 @@ for j in range(3):
 
 pdf.close()
 
+# Remove this if you aren't me...
 import os
 os.system("cp census_cancorr.pdf ~kshedden")

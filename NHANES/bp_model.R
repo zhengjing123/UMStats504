@@ -29,7 +29,7 @@ for (female in c(0, 1)) {
             label = sprintf("Male, BMI=%d", bmi)
         }
 
-        sbp = sbp=predict(rslt1, newdata=da)
+        sbp = predict(rslt1, newdata=da)
         du = data.frame(Female=female, BMXBMI=bmi, Age=da$RIDAGEYR, label=label, sbp=sbp)
         dz = rbind(dz, du)
     }

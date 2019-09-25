@@ -1,6 +1,10 @@
+# Principal Component Analysis of the US census data for
+# household income and age/sex structure.  The unit of
+# analysis is a census tract.
+
 import numpy as np
 import pandas as pd
-from get_data import dx, incvars, popvars, io
+from get_data import dx, incvars, popvars, io, age_bands, plot_inc, plot_pop
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -30,6 +34,7 @@ def do_pca(x, vars):
 
 u_pop, v_pop, mn_pop = do_pca(dy, popvars)
 
+
 for cx in range(4):
     for k in range(5):
 
@@ -38,50 +43,21 @@ for cx in range(4):
             ylabel = "Mean"
         else:
             vp = v_pop.iloc[k:180:5, cx - 1]
-            ylabel = "Component %d" % cx
+            ylabel = "Component %d loading" % cx
 
-        plt.clf()
-        plt.figure(figsize=(8, 5))
-        plt.axes([0.12, 0.15, 0.7, 0.8])
-        plt.grid(True)
-        m = vp.shape[0]
-        plt.plot(vp.iloc[0:m//2], label="Female")
-        plt.plot(vp.iloc[m//2:], label="Male")
-        plt.title("%d" % (1970 + k*10))
-        g = plt.gca().set_xticklabels(age_bands + age_bands)
-        for u in g:
-            u.set_size(10)
-            u.set_rotation(-90)
-        ha, lb = plt.gca().get_legend_handles_labels()
-        leg = plt.figlegend(ha, lb, loc="center right")
-        leg.draw_frame(False)
-        plt.xlabel("Age", size=15)
-        plt.ylabel(ylabel, size=15)
-        if cx > 0:
-            plt.ylim(-0.2, 0.2)
+        ylim = (-0.2, 0.2) if cx > 0 else None
+
+        plot_pop(vp, ylabel, "%d population structure" % (1970 + k*10), ylim)
         pdf.savefig()
 
 
 u_inc, v_inc, mn_inc = do_pca(dy, incvars)
 
-xl = []
-for y in range(1970, 2011, 10):
-    xl.extend(["", ""])
-    xl.append(str(y))
-    xl.extend(["", ""])
-
 for cx in range(3):
-    plt.clf()
-    plt.grid(True)
-    plt.title("Income component %d" % (cx + 1))
     vp = v_inc.loc[io, cx].values
-    for j in range(5):
-        plt.plot(range(5*j, 5*(j+1)), vp[5*j:5*(j+1)], '-o', color='black')
-    plt.gca().set_xticks(range(25))
-    g = plt.gca().set_xticklabels(xl)
-    for u in g:
-        u.set_size(10)
-        u.set_rotation(-90)
+    title = "Income component loadings"
+    ylabel = "Component %d loading" % (cx + 1)
+    plot_inc(vp, ylabel, title)
     pdf.savefig()
 
 pdf.close()

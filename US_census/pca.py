@@ -59,6 +59,15 @@ for cx in range(3):
     plot_inc(vp, ylabel, title)
     pdf.savefig()
 
+# Plot the population scores against the income scores.i
+for j in range(3):
+    plt.clf()
+    plt.grid(True)
+    plt.plot(u_pop[:, j], u_inc[:, j], 'o', alpha=0.5, rasterized=True)
+    plt.xlabel("Population layer %d scores" % (j +1), size=15)
+    plt.ylabel("Income layer %d scores" % (j +1), size=15)
+    pdf.savefig()
+
 pdf.close()
 
 # Remove this if you aren't me

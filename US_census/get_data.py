@@ -13,8 +13,8 @@ pa1 = "nhgis0001_csv/nhgis0001_ts_nominal_tract.csv"
 pa2 = "nhgis0002_csv/nhgis0002_ts_nominal_tract.csv"
 
 # Read the raw income and population data
-df1 = pd.read_csv(pa1, encoding="latin1")
-df2 = pd.read_csv(pa2, encoding="latin1")
+df_inc = pd.read_csv(pa1, encoding="latin1")
+df_pop = pd.read_csv(pa2, encoding="latin1")
 
 # The population data are counts in the following age bands
 age_bands = ["<5", "5-9", "10-14", "15-17", "18-19", "20", "21", "22-24", "25-29",
@@ -35,14 +35,14 @@ def norm(df, stem, years):
         df.loc[:, vx] = df.loc[:, vx].div(tot, axis=0)
 
 # Normalize the population and income data
-norm(df1, "A88", years1)
-norm(df2, "B58", years2)
+norm(df_inc, "A88", years1)
+norm(df_pop, "B58", years2)
 
 # We loose a lot of data here, but OK for our purposes
-dx1 = df1.dropna()
-dx2 = df2.dropna()
+dx_inc = df_inc.dropna()
+dx_pop = df_pop.dropna()
 
-dx = pd.merge(dx2, dx1, left_on="NHGISCODE", right_on="NHGISCODE")
+dx = pd.merge(dx_pop, dx_inc, left_on="NHGISCODE", right_on="NHGISCODE")
 
 # The variable names corresponding to either income or population data
 incvars = [c for c in dx.columns if c.startswith("A88") and not c.endswith("M")]

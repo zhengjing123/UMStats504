@@ -1,5 +1,5 @@
 # Canonical Correlation Analysis of the US census data relating
-# household income to population demographic (age/sex) structure.
+# family income to population demographic (age/sex) structure.
 # The unit of analysis is a census tract.  Data from 5 decennial
 # census waves (1970-2010) are used.  The overall dimension of
 # the demographic data is 180 and the overall dimension of the
@@ -78,7 +78,7 @@ for j in range(min(3, q_i, q_p)):
         plot_pop(pop_coef.iloc[k:180:5, j], ylabel, title, (-0.3, 0.3))
         pdf.savefig()
     ylabel = "Component %d loading" % (j + 1)
-    plot_inc(inc_coef.loc[io, :].iloc[:, j], ylabel, "Household income loadings")
+    plot_inc(inc_coef.loc[io, :].iloc[:, j], ylabel, "Family income loadings")
     pdf.savefig()
 
 pdf.close()

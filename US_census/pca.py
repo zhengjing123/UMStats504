@@ -1,5 +1,5 @@
 # Principal Component Analysis of the US census data for
-# household income and age/sex structure.  The unit of
+# family income and age/sex structure.  The unit of
 # analysis is a census tract.  See the IPUMS/NHGIS
 # codebooks for more information about the variables.
 

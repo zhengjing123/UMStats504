@@ -1,12 +1,18 @@
 """
 The data come from the IPUMS/NHGIS site: data2.nhgis.org
+
+Be sure to download time series data
+
+The population age data are designated: "Persons by Sex [2] by Age [18]"
+
+The family income are designated: "Families by Income in Previous Year [5]"
 """
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Household income data
+# Family income data
 pa1 = "nhgis0001_csv/nhgis0001_ts_nominal_tract.csv"
 
 # Age x sex population counts

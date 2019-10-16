@@ -51,26 +51,19 @@ else:
 
 opts = {"DayOfWeek": {"lw": 3}, "CommunityArea": {"color": "grey", "lw": 2, "alpha": 0.5}}
 
-# Loop over primary crime types, create a Poisson model for each type
-for pt, dz in cdat.groupby("PrimaryType"):
-
-    # Create and fit the model
-    model = sm.GLM.from_formula(fml, family=sm.families.Poisson(), data=dz)
-    result = model.fit(scale='X2')
-
-    # Estimate the scale as if this was a quasi-Poisson model
-    print("%-20s %5.1f" % (pt, result.scale))
-
-    # Get the empirical mean and variance of the response variable
-    # in a series of fitted value strata.
+# Get the empirical mean and variance of the response variable
+# in a series of fitted value strata.
+def get_meanvar(model, result):
     c = pd.qcut(result.fittedvalues, np.linspace(0.1, 0.9, 9))
     dd = pd.DataFrame({"c": c, "y": model.endog})
     mv = []
     for k,v in dd.groupby("c"):
         mv.append([v.y.mean(), v.y.var()])
     mv = np.asarray(mv)
+    return mv
 
-    # Histogram of counts
+# Histogram of counts
+def plot_count_hist(model):
     plt.clf()
     plt.axes([0.15, 0.1, 0.8, 0.8])
     plt.hist(model.endog)
@@ -78,7 +71,8 @@ for pt, dz in cdat.groupby("PrimaryType"):
     plt.ylabel("Frequency", size=15)
     pdf.savefig()
 
-    # Plot the empirical mean/variance relationship
+# Plot the empirical mean/variance relationship
+def plot_empirical_meanvar(pt, mv):
     plt.clf()
     plt.title(pt)
     plt.grid(True)
@@ -94,7 +88,9 @@ for pt, dz in cdat.groupby("PrimaryType"):
     plt.ylabel("Variance", size=15)
     pdf.savefig()
 
-    # Plot the fitted means curves for two variables, holding the others fixed.
+# Plot the fitted means curves for two variables, holding the others fixed.
+def plot_fit(pt, cdat, dz):
+
     for tp in "Year", "DayOfYear":
         for vn in "DayOfWeek", "CommunityArea":
 
@@ -176,5 +172,65 @@ for pt, dz in cdat.groupby("PrimaryType"):
             leg.draw_frame(False)
             pdf.savefig()
 
-pdf.close()
+def plot_resid_acor(pt, result):
 
+    a = sm.tsa.acf(result.resid_pearson)
+
+    plt.clf()
+    plt.grid(True)
+    plt.plot(a)
+    plt.title(pt)
+    plt.xlabel("Lag (days)", size=15)
+    plt.ylabel("Autocorrelation", size=15)
+    plt.ylim(-0.2, 1)
+    pdf.savefig()
+
+def plot_resid_week_pca(pt, result):
+
+    dm = result.model.data.frame
+    dr = pd.DataFrame({"resid": result.resid_pearson.values,
+                       "DayOfWeek": dm.DayOfWeek})
+
+    ii = np.flatnonzero(dr.DayOfWeek == "Mo")[0]
+    dr = dr.iloc[ii:, :]
+    ii = np.flatnonzero(dr.DayOfWeek == "Su")[-1]
+    dr = dr.iloc[:ii+1, :]
+
+    rs = np.reshape(dr.resid.values, (-1, 7))
+
+    u, s, vt = np.linalg.svd(rs, 0)
+    v = vt.T
+
+    plt.clf()
+    plt.axes([0.14, 0.1, 0.75, 0.8])
+    plt.grid(True)
+    for k in range(3):
+        plt.plot(v[:, k], label=str(k+1))
+    ha, lb = plt.gca().get_legend_handles_labels()
+    leg = plt.figlegend(ha, lb, loc="center right")
+    leg.draw_frame(False)
+    plt.gca().set_xticks(range(7))
+    plt.gca().set_xticklabels(["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"])
+    plt.title(pt)
+    plt.ylabel("Loading", size=15)
+    pdf.savefig()
+
+# Loop over primary crime types, create a Poisson model for each type
+for pt, dz in cdat.groupby("PrimaryType"):
+
+    # Create and fit the model
+    model = sm.GLM.from_formula(fml, family=sm.families.Poisson(), data=dz)
+    result = model.fit(scale='X2')
+
+    # Estimate the scale as if this was a quasi-Poisson model
+    print("%-20s %5.1f" % (pt, result.scale))
+
+    mv = get_meanvar(model, result)
+
+    plot_count_hist(model)
+    plot_empirical_meanvar(pt, mv)
+    plot_fit(pt, cdat, dz)
+    plot_resid_acor(pt, result)
+    plot_resid_week_pca(pt, result)
+
+pdf.close()

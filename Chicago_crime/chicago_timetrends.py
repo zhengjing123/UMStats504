@@ -39,6 +39,9 @@ if not spacetime:
 
 fb(cdat)
 
+# A few values of CommunityArea are missing.
+cdat = cdat.dropna()
+
 # Model terms for the day of year Fourier basis
 doy = "DayOfYear_sin_1 + DayOfYear_cos_1 + DayOfYear_sin_2 + DayOfYear_cos_2"
 
@@ -174,7 +177,18 @@ def plot_fit(pt, cdat, dz):
 
 def plot_resid_acor(pt, result):
 
-    a = sm.tsa.acf(result.resid_pearson)
+    if spacetime:
+        # Get the average autocorrelation over community areas
+        dm = result.model.data.frame
+        da = pd.DataFrame({"resid": result.resid_pearson, "Date": dm.Date, "CommunityArea": dm.CommunityArea})
+        da = da.sort_values(by=["CommunityArea", "Date"])
+        a, m = 0, 0
+        for k, dv in da.groupby("CommunityArea"):
+            a += sm.tsa.acf(dv.resid)
+            m += 1
+        a /= m
+    else:
+        a = sm.tsa.acf(result.resid_pearson)
 
     plt.clf()
     plt.grid(True)
@@ -187,19 +201,39 @@ def plot_resid_acor(pt, result):
 
 def plot_resid_week_pca(pt, result):
 
-    dm = result.model.data.frame
-    dr = pd.DataFrame({"resid": result.resid_pearson.values,
-                       "DayOfWeek": dm.DayOfWeek})
+    if spacetime:
+        dm = pd.DataFrame(result.model.data.frame)
+        dm["resid"] = result.resid_pearson.values
+        dm = dm.sort_values(by=["CommunityArea", "Date"])
 
-    ii = np.flatnonzero(dr.DayOfWeek == "Mo")[0]
-    dr = dr.iloc[ii:, :]
-    ii = np.flatnonzero(dr.DayOfWeek == "Su")[-1]
-    dr = dr.iloc[:ii+1, :]
+        da = []
+        for k, dv in dm.groupby("CommunityArea"):
+            dr = pd.DataFrame({"resid": dv.resid,
+                               "DayOfWeek": dv.DayOfWeek})
+            ii = np.flatnonzero(dr.DayOfWeek == "Mo")[0]
+            dr = dr.iloc[ii:, :]
+            ii = np.flatnonzero(dr.DayOfWeek == "Su")[-1]
+            dr = dr.iloc[:ii+1, :]
+            rs = np.reshape(dr.resid.values, (-1, 7))
+            da.append(rs)
 
-    rs = np.reshape(dr.resid.values, (-1, 7))
+        da = np.concatenate(da)
+        u, s, vt = np.linalg.svd(da, 0)
+        v = vt.T
+    else:
+        dm = result.model.data.frame
+        dr = pd.DataFrame({"resid": result.resid_pearson.values,
+                           "DayOfWeek": dm.DayOfWeek})
 
-    u, s, vt = np.linalg.svd(rs, 0)
-    v = vt.T
+        ii = np.flatnonzero(dr.DayOfWeek == "Mo")[0]
+        dr = dr.iloc[ii:, :]
+        ii = np.flatnonzero(dr.DayOfWeek == "Su")[-1]
+        dr = dr.iloc[:ii+1, :]
+
+        rs = np.reshape(dr.resid.values, (-1, 7))
+
+        u, s, vt = np.linalg.svd(rs, 0)
+        v = vt.T
 
     plt.clf()
     plt.axes([0.14, 0.1, 0.75, 0.8])

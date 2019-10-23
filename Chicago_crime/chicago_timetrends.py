@@ -114,7 +114,7 @@ def plot_fit(pt, cdat, dz):
             if tp == "Year":
                 dp.Year = np.linspace(2003, 2018, p)
             elif tp == "DayOfYear":
-                dp.DayOfYear = np.linspace(2, 364, p)
+                dp.DayOfYear = np.linspace(1, 365, p)
                 fb(dp)
 
             plt.clf()

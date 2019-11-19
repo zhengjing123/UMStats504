@@ -6,7 +6,7 @@ from data_prep import dx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-pdf = PdfPages("rlms_addvar_plots.pdf")
+pdf = PdfPages("addvar_plots.pdf")
 
 dx["log_wage"] = np.log2(dx.age)
 dx["log_hours"] = np.log2(dx.J8)

@@ -11,21 +11,27 @@ pdf = PdfPages("rlms_gee_plots.pdf")
 # Mean structure, with and without gender
 fml = "I(np.log2(J10)) ~ C(status) + (bs(year, 5) + bs(age, 5) + bs(educ, 5))*Female + C(OCCUP08) + I(np.log2(J8))"
 fml0 = "I(np.log2(J10)) ~ C(status) + bs(year, 5) + bs(age, 5) + bs(educ, 5) + C(OCCUP08) + I(np.log2(J8))"
+fml1 = "I(np.log2(J10)) ~ C(status) + bs(year, 5) + bs(age, 5)*Female + bs(educ, 5) + C(OCCUP08) + I(np.log2(J8))"
 
 # OLS model with/without gender
 ols_model = sm.OLS.from_formula(fml, data=dx)
 ols_result = ols_model.fit()
 ols_model0 = sm.OLS.from_formula(fml0, data=dx)
 ols_result0 = ols_model0.fit()
+ols_model1 = sm.OLS.from_formula(fml1, data=dx)
+ols_result1 = ols_model1.fit()
 
 # GEE model with/without gender
 gee_model = sm.GEE.from_formula(fml, groups="idind", cov_struct=sm.cov_struct.Exchangeable(), data=dx)
 gee_result = gee_model.fit()
 gee_model0 = sm.GEE.from_formula(fml0, groups="idind", cov_struct=sm.cov_struct.Exchangeable(), data=dx)
 gee_result0 = gee_model0.fit()
+gee_model1 = sm.GEE.from_formula(fml1, groups="idind", cov_struct=sm.cov_struct.Exchangeable(), data=dx)
+gee_result1 = gee_model1.fit()
 
 # Compare the two models using score tests (with gender versus without gender)
 print(gee_model.compare_score_test(gee_result0))
+print(gee_model.compare_score_test(gee_result1))
 
 # Plot mean curves of log income by age for women and for men,
 # each with a confidence band.

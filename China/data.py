@@ -1,3 +1,15 @@
+"""
+Prepare a subset of data from the China Health and Nutrition Survey for analysis.
+
+The study is described here:
+
+https://www.cpc.unc.edu/projects/china
+
+The data are available here (registration required):
+
+https://www.cpc.unc.edu/projects/china/data/datasets/data-downloads-registration
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -34,3 +46,8 @@ df["urban"] = df.t2.replace({1: 1, 2: 0}).values
 df["age"] = df["wave"] - df["DOB"]
 df["female"] = df.GENDER.replace({1: 0, 2: 1}).values
 df = df.dropna()
+
+if False:
+    # Save a copy of the data
+    df.to_csv("chns.csv.gz", index=False)
+

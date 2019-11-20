@@ -5,17 +5,19 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from data import df
 
-sp = 0.8
-ndim = 4
-
+# Create a log income variable
 df = df.loc[df.indinc>=0, :]
 df["logindinc"] = np.log(1 + df.indinc)
 
+# Use dimension reduction regression for each of the
+# below outcome variables
 resp = ["d3kcal", "d3carbo", "d3fat", "d3protn"]
 
+# Drop variables that we don't need
 xv = ["age", "female", "urban", "logindinc", "educ"]
 dx = df.loc[:, resp + xv]
 
+# Center the data
 xmean = dx.loc[:, xv].mean(0)
 dx.loc[:, xv] -= xmean
 
@@ -43,9 +45,11 @@ spl = {1: 0.2, 2: 0.2, 3: 0.3, 4: 0.3, 5: 0.4}
 
 for rv in resp:
 
+    # Get the dimension reduction directions
     m = SIR(dx[rv], dx.loc[:, xv])
     s = m.fit(slice_n=500)
 
+    # Plot the eigenvalues
     plt.clf()
     plt.grid(True)
     plt.title(rv)
@@ -57,12 +61,15 @@ for rv in resp:
     for ndim in 1, 2, 3, 4, 5:
         for a in 0, 0.3, 0.5:
 
+            # Reduce the dimension of the covariates
             proj = s.params.iloc[:, 0:ndim]
             xmat = np.dot(dx.loc[:, xv], proj)
 
+            # Get the local regression function
             sp = spl[ndim] + a
             f = kreg(dx[rv], xmat, s=sp)
 
+            # Create a dataframe for prediction
             xp = dx.iloc[0:100, :].loc[:, xv].copy()
             xp["age"] = ages
             xp["logindinc"] = xmean.logindinc
@@ -76,16 +83,23 @@ for rv in resp:
             for female in 0, 1:
                 for urban in 0, 1:
 
+                    # Prepare a dataframe for prediction
                     xp.loc[:, "female"] = female
                     xp.loc[:, "urban"] = urban
 
+                    # Transform the prediction dataframe the same as
+                    # the fitting dataframe
                     xq = xp - xmean
                     xq = np.dot(xq, proj)
 
+                    # Get the fitted values
                     yp = [f(xq[i, :]) for i in range(100)]
 
+                    # A label for the line we will add here
                     label = [["rural", "urban"][urban], ["male", "female"][female]]
                     label = "%s %s" % tuple(label)
+
+                    # Add one line to the plot
                     plt.plot(ages, yp, '-', label=label)
 
             ha, lb = plt.gca().get_legend_handles_labels()

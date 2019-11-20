@@ -20,6 +20,8 @@ for bars in False, True:
 
         fml = rv + " ~ 0 + bs(age, 5)*(female + urban) + logindinc + educ + wave"
 
+        # Get the scale (dispersion) parameter estimate, used for plotting
+        # vertical bars showing the range of the data around the mean.
         scale = sm.OLS.from_formula(fml, data=df).fit().scale
         usd = np.sqrt(scale)
         print(usd)
@@ -94,9 +96,11 @@ for bars in False, True:
                     plt.plot([age[q], age[q]], [pr[qq, j]-usd, pr[qq, j]+usd], '-', color='grey')
                     plt.plot([age[q]]*3, [pr[qq, j]-usd, pr[qq, j], pr[qq, j]+usd], 'o', ms=4, color=c)
 
+            # Draw a legend
             ha, lb = plt.gca().get_legend_handles_labels()
             leg = plt.figlegend(ha, lb, "center right")
             leg.draw_frame(False)
+
             plt.xlabel("Age", size=15)
             plt.ylabel(rv, size=15)
 

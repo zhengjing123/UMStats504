@@ -12,13 +12,18 @@ df$logindinc = log(1 + df$indinc)
 df$sex = factor(df$female, c(0, 1), c("male", "female"))
 df$urban = factor(df$urban, c(0, 1), c("rural", "urban"))
 
+# Fit an additive model with the variable "vname" used as the
+# dependent variable.
 make_plot = function(vname) {
 
+    # The response variable
     df$y = df[[vname]]
 
+    # Fit an additive model
     m = gam(y ~ sex*urban + s(age, k=5, by=sex:urban) + s(wave, k=5) + s(educ, k=5) +
             s(logindinc, k=5), data=df, family=gaussian)
 
+    # Create a dataframe for prediction
     pd = data.frame(sex=NULL, age=NULL, y=NULL)
     age = seq(18, 80, length.out=100)
     for (sex in c("female", "male")) {
@@ -37,8 +42,10 @@ make_plot = function(vname) {
     dx$sex = as.factor(dx$sex)
     dx$urban = as.factor(dx$urban)
 
+    # Get the predictedvalues
     pd$y = predict(m, newdata=pd)
 
+    # Plot the predicted values
     p = ggplot(pd, aes(x=age, y=y, group=interaction(sex, urban), col=interaction(sex, urban)))
     p = p + geom_line()
     p = p + ylab(vname)

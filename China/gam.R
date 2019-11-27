@@ -20,7 +20,7 @@ make_plot = function(vname) {
     df$y = df[[vname]]
 
     # Fit an additive model
-    m = gam(y ~ sex*urban + s(age, k=5, by=sex:urban) + s(wave, k=5) + s(educ, k=5) +
+    m = gam(y ~ sex*urban*age + wave + educ + s(age, k=5, by=sex:urban) + s(wave, k=5) + s(educ, k=5) +
             s(logindinc, k=5), data=df, family=gaussian)
 
     # Create a dataframe for prediction

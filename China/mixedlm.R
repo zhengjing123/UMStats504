@@ -23,6 +23,7 @@ do_fit = function(vname) {
 
     # Fit the mixed model
     m = lmer(y ~ sex*urban + age + wave + educ + logindinc + (1+age_cen|Idind), data=df)
+    print(summary(m))
 
     # Extract the variance and correlation parameters from the fitted model
     s = attr(VarCorr(m)[[1]], "stddev")

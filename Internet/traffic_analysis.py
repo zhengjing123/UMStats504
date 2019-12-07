@@ -7,11 +7,13 @@ import numpy as np
 import numpy as np
 from scipy.stats import kendalltau
 
-pdf = PdfPages("internet.pdf")
+dt = "2012-04-01"
+
+pdf = PdfPages("internet_%s.pdf" % dt)
 
 # Load the traffic statistics (one record per minute
 # within a day).
-df = pd.read_csv("traffic_stats.csv")
+df = pd.read_csv("traffic_stats_%s.csv" % dt)
 
 # Rename the columns
 cname = {"Traffic": "Total traffic", "UDP": "UDP", "TCP": "TCP",

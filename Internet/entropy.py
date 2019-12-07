@@ -17,7 +17,10 @@ import numpy as np
 import os
 import pandas as pd
 
-dport_files = os.listdir("results")
+# Process data for this date
+dt = "2012-04-01"
+
+dport_files = os.listdir("results/" + dt)
 dport_files = [x for x in dport_files if x.endswith(".dports.csv.gz")]
 
 # Make sure the files are in temporal order
@@ -36,14 +39,14 @@ def entropy(x):
 all_ent = []
 for f in dport_files:
 
-    df = pd.read_csv(os.path.join("results", f), header=None)
-    mat = np.asarray(df)
+    pa = os.path.join("results/" + dt, f)
+    mat = np.genfromtxt(pa, delimiter=",")
 
     # Loop over minutes within the hour
     for k in range(60):
         all_ent.append(entropy(mat[k, :]))
 
-fid = open("entropy_minute.csv", "w")
+fid = open("entropy_minute_%s.csv" % dt, "w")
 for x in all_ent:
     fid.write("%f\n" % x)
 fid.close()

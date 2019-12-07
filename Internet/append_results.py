@@ -6,35 +6,51 @@ traffic statistics file for one day.
 import numpy as np
 import os
 import pandas as pd
+from datetime import date
 
-files = os.listdir("results")
-files = [x for x in files if x.endswith(".csv")]
+# Process these days
+days = (1, 5, 25)
 
-def f(x):
-    y = x.split(".")[0]
-    return str.isdigit(y) and len(y) == 10
 
-files = [x for x in files if f(x)]
+def process_day_stats(day):
 
-# Make sure the files are in temporal order
-d = [int(x.split(".")[0]) for x in files]
-ii = np.argsort(d)
-files = [files[i] for i in ii]
+    bdate = date(2012, 4, day)
 
-adf = []
-for f in files:
-    df = pd.read_csv(os.path.join("results", f))
-    df = df.iloc[:, 1:]
-    adf.append(df)
-dx = pd.concat(adf, axis=0)
-dx.columns = ["Traffic", "Sources", "UDP", "TCP"]
+    files = os.listdir("results/%s" % bdate.isoformat())
+    files = [x for x in files if x.endswith(".csv")]
 
-dx["Minute"] = np.arange(dx.shape[0])
-dx["Hour"] = np.floor(dx.Minute / 60)
-dx.Minute = dx.Minute % 60
-dx.Minute = dx.Minute.astype(np.int)
-dx.Hour = dx.Hour.astype(np.int)
+    def f(x):
+        y = x.split(".")[0]
+        return str.isdigit(y) and len(y) == 10
 
-dx = dx[["Hour", "Minute", "Traffic", "Sources", "UDP", "TCP"]]
+    files = [x for x in files if f(x)]
 
-dx.to_csv("traffic_stats.csv", index=None)
+    # Make sure the files are in temporal order
+    d = [int(x.split(".")[0]) for x in files]
+    ii = np.argsort(d)
+    files = [files[i] for i in ii]
+
+    adf = []
+    for f in files:
+        df = pd.read_csv(os.path.join("results", bdate.isoformat(), f))
+        df = df.iloc[:, 1:]
+        adf.append(df)
+    dx = pd.concat(adf, axis=0)
+    dx.columns = ["Traffic", "Sources", "UDP", "TCP"]
+
+    dx["Minute"] = np.arange(dx.shape[0])
+    dx["Hour"] = np.floor(dx.Minute / 60)
+    dx.Minute = dx.Minute % 60
+    dx.Minute = dx.Minute.astype(np.int)
+    dx.Hour = dx.Hour.astype(np.int)
+
+    dx = dx[["Hour", "Minute", "Traffic", "Sources", "UDP", "TCP"]]
+
+    dx.to_csv("traffic_stats_%s.csv" % bdate.isoformat(), index=None)
+
+for day in days:
+    process_day_stats(day)
+
+    bdate = date(2012, 4, day)
+    d = bdate.isoformat()
+    os.system("tar -cvf %s_ports.tar results/%s/*.dports.csv.gz" % (d, d ))

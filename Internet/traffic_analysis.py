@@ -5,10 +5,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import numpy as np
+from scipy.special import gammaln
 from scipy.stats import kendalltau
 
+# The date to process
 dt = "2012-04-01"
 
+# Create a set of graphs in one pdf file.
 pdf = PdfPages("internet_%s.pdf" % dt)
 
 # Load the traffic statistics (one record per minute
@@ -43,7 +46,7 @@ for i in range(4):
     pdf.savefig()
 
 # Plot the entropy data
-ent = pd.read_csv("entropy_minute.csv", header=None)
+ent = pd.read_csv("entropy_minute_%s.csv" % dt, header=None)
 plt.clf()
 plt.plot(ent)
 plt.grid(True)
@@ -77,7 +80,7 @@ def kt(z, k):
 # Calculate all the Kendall's tau autocorrelation values (for
 # each data series, at different lags).
 # f[j, k, t] is the tau-autocorrelations for series j (e.g.
-# total traffic) difference to order k at lag t.
+# total traffic) differenced to order k at lag t.
 f = []
 for j in range(4):
     v = []
@@ -140,10 +143,63 @@ for k in range(3):
         plt.plot(z0[5, k:], np.sort(y), color='grey')
         plt.plot(z0[50, k:], np.sort(y), color='blue')
         plt.plot(z0[95, k:], np.sort(y), color='grey')
-        plt.ylabel(cname[df.columns[2+j]], size=15)
-        plt.xlabel("Null", size=15)
-        plt.title("Order %d differences" % k)
+        plt.ylabel("Observed tau autocorrelation", size=15)
+        plt.xlabel("Null tau autocorrelation", size=15)
+        plt.title(cname[df.columns[2+j]] + " order %d differences" % k)
         pdf.savefig()
+
+def bincoeff(n, m):
+    return np.exp(gammaln(n + 1) - gammaln(n - m + 1) - gammaln(m + 1))
+
+
+def lmoment(x, k):
+
+    n = len(x)
+    x = np.sort(x)
+    ii = np.arange(1, n + 1, dtype=np.float64)
+
+    if k == 1:
+        return np.mean(x)
+    elif k == 2:
+        c = 2*ii - n - 1
+        c /= bincoeff(n, 2)
+        c /= 2
+        return np.dot(x, c)
+    elif k == 3:
+        c = bincoeff(ii-1, 2) - 2*(ii-1)*(n-ii) + bincoeff(n-i, 2)
+        c /= bincoeff(n, 3)
+        c /= 3
+        return np.dot(x, c)
+    elif k == 4:
+        c = bincoeff(ii-1, 3) - 3*bincoeff(ii-1, 2)*(n-ii) + 3*(ii-1)*bincoeff(n-ii, 2) - bincoeff(n-ii, 3)
+        c /= bincoeff(n, 4)
+        c /= 4
+        return np.dot(x, c)
+
+lmom = np.zeros((24, 16))
+ii = 0
+for hour in range(24):
+    x = df.iloc[ii:ii+60, 2:].values
+    ii += 60
+    u = []
+    for k in range(4):
+        for j in range(1, 5):
+            u.append(lmoment(x[:, k], j))
+    u = np.asarray(u)
+    lmom[hour, :] = u
+
+jj = 0
+for k in range(4):
+    for j in range(4):
+        plt.clf()
+        plt.axes([0.2, 0.1, 0.75, 0.8])
+        plt.grid(True)
+        plt.plot(lmom[:, jj])
+        plt.xlabel("Hour", size=15)
+        plt.ylabel("L-moment of order %d" % (j + 1), size=15)
+        plt.title(cname[df.columns[2 + k]])
+        pdf.savefig()
+        jj += 1
 
 # Calculate the Hurst index using means and variances.
 def hurst(x):

@@ -148,10 +148,13 @@ for k in range(3):
         plt.title(cname[df.columns[2+j]] + " order %d differences" % k)
         pdf.savefig()
 
+# Calculate the binomial coefficient "n choose m".
 def bincoeff(n, m):
     return np.exp(gammaln(n + 1) - gammaln(n - m + 1) - gammaln(m + 1))
 
 
+# Calculate the l-moment of order k, for the data vector x.
+# The order (k) must be equal to 1, 2, 3, or 4.
 def lmoment(x, k):
 
     n = len(x)
@@ -176,6 +179,8 @@ def lmoment(x, k):
         c /= 4
         return np.dot(x, c)
 
+# Calculate the first four L-moments of all outcomes,
+# for each hour within a day.
 lmom = np.zeros((24, 16))
 ii = 0
 for hour in range(24):
@@ -188,6 +193,7 @@ for hour in range(24):
     u = np.asarray(u)
     lmom[hour, :] = u
 
+# Plot each L moment (calculated by hour) as a function of time.
 jj = 0
 for k in range(4):
     for j in range(4):

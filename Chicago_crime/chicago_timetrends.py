@@ -37,6 +37,7 @@ if not spacetime:
     cdat = cdat.groupby(["PrimaryType", "Year", "DayOfYear"]).agg(a)
     cdat = cdat.reset_index()
 
+# Build the Fourier basis functions
 fb(cdat)
 
 # A few values of CommunityArea are missing.
